@@ -36,9 +36,7 @@ def iperfclient():
     r= requests.get(f'http://{ServerAddress}:{MeasurePort}/startiperf3')
     if not 'starteiperf3: ok' in r.content:
         print(mytime(),"Could not start iperf3 server")
-        import sys
-        sys.exit()
-
+  
     time.sleep(2)
 
     client = ip3.Client()
