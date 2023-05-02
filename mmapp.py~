@@ -3,7 +3,7 @@ from functools import wraps
 import subprocess
 import statistics
 import shlex
-from worker import errorResponse
+#from worker import errorResponse
 import iperf3 as ip3
 import os
 import pandas as pd
@@ -46,6 +46,7 @@ def iperfclient():
     client.zerocopy = True
     client.verbose = False
     client.reverse = False
+    print(f'Serverport: {ServerPort}')
     client.port = ServerPort
     client.num_streams = 10
     print(mytime(),"Starting iperf3 client run 1")
@@ -65,7 +66,7 @@ def iperfclient():
 
     print(mytime(),f'Registering RTT result: {rtt}')
 
-    r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerping/', json={'RTT':f'rtt'})
+    r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerping/', json={'RTT':f'{rtt}'})
 
     if not 'registerping: ok' in r.content:
         print(mytime(),"Could not register RTT")
@@ -94,6 +95,7 @@ def ping_addr(dest):
 
 @logged
 def iperf3Throughput():
+    time.sleep(1)
     s = ip3.Server()
     s.port = ServerPort
     print("starting iperfserver at:",ServerAddress)
@@ -115,11 +117,11 @@ def iperf3Throughput():
 
 
 
-@logged
-def Start_sample(uid):
+
+def Startsample(uid):
     try:
         os.makedirs(Logfile,exist_ok=True)
-    except OSError as error:
+    except Exception as error:
         print(mytime(),f'Directory {Logfile} can not be created')
 
     if not os.path.exists(f'{Logfile}/iperf.csv'):
@@ -132,8 +134,28 @@ def Start_sample(uid):
 
     else:
         df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+        print(mytime(),f'Reading file {Logfile}/iperf.csv')
+    
+    #sample = iperf3Throughput()
+    s = ip3.Server()
+    s.port = ServerPort
+    print("starting iperfserver at:",ServerAddress)
+    s.bind_address = ServerAddress
+    s.json_output = True
 
-    sample = iperf3Throughput()
+    results=s.run()
+    l=results.json
+    uplink=l['end']['streams'][0]['receiver']['bits_per_second']
+
+    print(mytime(),f"uplink:{uplink}")
+
+    results=s.run()
+    l=results.json
+    downlink=l['end']['streams'][0]['sender']['bits_per_second']
+
+    print(mytime(),f"downlink:{downlink}")
+    sample= {'Date':[datetime.now().strftime("%Y-%d-%m %H:%M:%S")],'Uplink':[uplink],'Downlink':[downlink]}
+
     df = pd.concat([df,pd.DataFrame(sample,columns=['Date','Uplink','Downlink','RTT'])])
     df.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
     print(mytime(),df)

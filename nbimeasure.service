@@ -1,0 +1,12 @@
+[Unit]
+Description=nbi_measure service
+After=multi-user.target
+Conflicts=getty@tty1.service
+
+[Service]
+Type=simple
+ExecStart=/home/tnor/5GMediahub/Measurements/Service/startflask.sh
+StandardInput=tty-force
+
+[Install]
+WantedBy=multi-user.target
