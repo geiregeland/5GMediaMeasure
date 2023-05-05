@@ -1,0 +1,12 @@
+[Unit]
+Description=owampd service
+After=multi-user.target
+Conflicts=getty@tty1.service
+
+[Service]
+Type=simple
+ExecStart=/opt/bin/owampd -c /opt/etc -d /tmp -R /var/run -G nogroup -U nobody
+StandardInput=tty-force
+
+[Install]
+WantedBy=multi-user.target
