@@ -136,9 +136,25 @@ def regowamp():
 #Reliability	The likelihood of a service failing, i.e. 	Mean time between failure (MTBF). 
 @app.route('/getmtbf',methods=['GET','POST'])
 def getmtbf():
+        res=[]
+        r=0
         df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        mtbf = 0
-        return mtbf
+        a=df['Availebility'].tail(10)
+        for i in a:
+             if i>=1.0:
+                  r+=1
+        else:
+             if r>0:
+                res.append(r)
+                r=0
+        if len(res):
+             s=0
+             for i in res:
+                  s+=i
+             return s/len(res)
+        else:
+             return 6000
+
 
 @app.route('/getdelay',methods=['GET','POST'])
 def getdelay():
