@@ -96,7 +96,7 @@ def regping():
         return errorResponse("Failed call to /registerping",error)
 
 @app.route('/registerowamp/',methods = ['GET','POST'])
-def regping():
+def regowamp():
     #try:
         arguments = request.json
         jitter=arguments['jitter']
