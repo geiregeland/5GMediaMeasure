@@ -126,7 +126,7 @@ def owamp(dest):
     print(mytime(),f'Registering OWAMP result: {results}')
 
     r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerowamp/', json={'availebility':f'{A}','delay':f'{mmedi}','jitter':f'{jitter}'})
-
+    #register 
     if not 'registerowamp: ok' in r.content:
         print(mytime(),"Could not register OWAMP")
 
