@@ -15,6 +15,7 @@ Logfile = "/home/tnor/5GMediahub/Measurements/Service/Logs"
 ServerPort = os.getenv('IPERF_PORT')
 ServerAddress = os.getenv('IPERF_ADDRESS')
 MeasurePort = os.getenv('MPORT')
+owping = os.getenv('OWPING')
 
 
 def mytime():
@@ -94,7 +95,7 @@ def ping_addr(dest):
 def owamp(dest):
     results={}
     try:
-        process = subprocess.Popen(shlex.split(f'{OWPING} -c100 -i0.1 -L10 -s0 -t -AO -nm {dest}'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        process = subprocess.Popen(shlex.split(f'{owping} -c100 -i0.1 -L10 -s0 -t -AO -nm {dest}'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
         pipe=process.stdout
 
@@ -107,7 +108,7 @@ def owamp(dest):
             if 'delay' in line:
                 tmp=line.split('=')[1]
                 mmin=tmp.split('/')[0]
-                mmedi=tmo.split['/'][1]
+                mmedi=tmp.split['/'][1]
                 mmax=tmp.split('/')[2].split(' ms')[0]
             if 'jitter' in line:
                 tmp=line.split(' = ')[1]
