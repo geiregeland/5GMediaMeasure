@@ -128,9 +128,9 @@ def regowamp():
         print(mytime(),dfd)
 
 
-        return f'registerping: ok'
+        return f'registerowamp: ok'
     #except Exception as error:
-        return errorResponse("Failed call to /registerping",error)
+        return errorResponse("Failed call to /registerowamp",error)
 
 
 #Reliability	The likelihood of a service failing, i.e. 	Mean time between failure (MTBF). 
