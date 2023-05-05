@@ -124,10 +124,10 @@ def owamp(dest):
 
     print(mytime(),f'Registering OWAMP result: {results}')
 
-    r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerowamp/', json={'availebility':f'{A}','delay':f'{mmedi}','jitter':f'{jitter}'})
+    #r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerowamp/', json={'availebility':f'{A}','delay':f'{mmedi}','jitter':f'{jitter}'})
 
-    if not 'registerping: ok' in r.content:
-        print(mytime(),"Could not register OWAMP")
+    #if not 'registerping: ok' in r.content:
+    #    print(mytime(),"Could not register OWAMP")
 
         
 @logged
@@ -200,4 +200,4 @@ def Startsample(uid):
 
 
 if __name__=='__main__':
-   iperfclient()
+   owamp(ServerAddress)

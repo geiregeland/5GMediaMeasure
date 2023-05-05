@@ -95,6 +95,81 @@ def regping():
     #except Exception as error:
         return errorResponse("Failed call to /registerping",error)
 
+@app.route('/registerowamp/',methods = ['GET','POST'])
+def regping():
+    #try:
+        arguments = request.json
+        jitter=arguments['jitter']
+        availebility=arguments['availebility']
+        delay=arguments['delay']
+
+        if float(jitter)*1.0 == 0:
+            print(mytime(),f'Error: we got jitter = {jitter}')
+            print(arguments)
+        
+        if float(availebility)*1.0 == 0:
+            print(mytime(),f'Error: we got A = {availebility}')
+            print(arguments)
+
+        if float(delay)*1.0 == 0:
+            print(mytime(),f'Error: we got delay = {delay}')
+            print(arguments)
+
+
+        #print(arguments)
+        dfd = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+        #dfd=df.copy()
+        dfd.loc[dfd.index[-1],'Delay']=float(delay)
+        dfd.loc[dfd.index[-1],'Availebility']=float(availebility)
+        dfd.loc[dfd.index[-1],'Jitter']=float(jitter)
+
+        #df = pd.concat([df,pd.DataFrame(sample,columns=['Date','Uplink','Downlink','RTT'])])
+        dfd.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
+        print(mytime(),dfd)
+
+
+        return f'registerping: ok'
+    #except Exception as error:
+        return errorResponse("Failed call to /registerping",error)
+
+
+#Reliability	The likelihood of a service failing, i.e. 	Mean time between failure (MTBF). 
+@app.route('/getmtbf',methods=['GET','POST'])
+def getmtbf():
+        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+        mtbf = 0
+        return mtbf
+
+@app.route('/getdelay',methods=['GET','POST'])
+def getdelay():
+        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+        delay = 0
+        return delay
+
+@app.route('/getjitter',methods=['GET','POST'])
+def getjitter():
+        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+        jitter = 0
+        return jitter
+
+@app.route('/getavailebility',methods=['GET','POST'])
+def getavailebility():
+        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+        A = 0
+        return A
+
+def getdl():
+        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+        downlink = 0
+        return downlink
+
+def getdl():
+        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+        uplink = 0
+        return uplink
+
+
+
 
    
 @app.route('/startiperf3', methods=['GET', 'POST'])
