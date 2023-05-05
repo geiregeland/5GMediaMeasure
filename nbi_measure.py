@@ -143,30 +143,29 @@ def getmtbf():
 @app.route('/getdelay',methods=['GET','POST'])
 def getdelay():
         df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        delay = 0
-        return delay
+        return df['Delay'].tail(10).mean()
 
 @app.route('/getjitter',methods=['GET','POST'])
 def getjitter():
         df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        jitter = 0
-        return jitter
+        return df['Jitter'].tail(10).mean()
 
 @app.route('/getavailebility',methods=['GET','POST'])
 def getavailebility():
         df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        A = 0
-        return A
+        
+        return df['Availebility'].tail(10).mean()
 
+@app.route('/getdl',methods=['GET','POST'])
 def getdl():
         df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        downlink = 0
-        return downlink
+        
+        return df['Downlink'].tail(10).mean()
 
-def getdl():
+@app.route('/getul',methods=['GET','POST'])
+def getul():
         df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        uplink = 0
-        return uplink
+        return df['Uplink'].tail(10).mean()
 
 
 

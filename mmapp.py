@@ -200,7 +200,14 @@ def Startsample(uid):
     df.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
     print(mytime(),df)
 
+def getjitter():
+        df = pd.read_csv(f'Logs/iperf2.csv',sep=';')
+        jitter = 0
+        print(df['Jitter'].tail(10).mean())
+
+        return jitter
 
 
 if __name__=='__main__':
-   owamp(ServerAddress)
+   #owamp(ServerAddress)
+    getjitter()
