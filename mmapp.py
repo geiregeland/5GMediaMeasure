@@ -93,41 +93,42 @@ def ping_addr(dest):
 
 @logged
 def owamp(dest):
-    results={}
+    results=[]
     try:
         process = subprocess.Popen(shlex.split(f'{owping} -c100 -i0.1 -L10 -s0 -t -AO -nm {dest}'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
         pipe=process.stdout
-
         for line in pipe:
             line = line.decode('utf-8')
             if 'sent' in line:
                 tmp=line.split(',')
-                sent=tmp[0].split(' ')[0]
-                loss=tmp[1].split(' ')[0]
+                sent=tmp[0].split(' ')[0].strip()
+                loss=tmp[1].split(' ')[1].strip()
+                results.append(sent)
+                results.append(loss)
             if 'delay' in line:
-                tmp=line.split('=')[1]
-                mmin=tmp.split('/')[0]
-                mmedi=tmp.split['/'][1]
-                mmax=tmp.split('/')[2].split(' ms')[0]
+                tmp=line.split('max =')[1]
+                mmin=tmp.split('/')[0].strip()
+                mmedi=tmp.split('/')[1].strip()
+                mmax=tmp.split('/')[2].split(' ms')[0].strip()
+                results.append(mmedi)
             if 'jitter' in line:
                 tmp=line.split(' = ')[1]
-                jitter=tmp.split(' ms')[0]
-
-
+                jitter=tmp.split(' ms')[0].strip()
+                results.append(jitter)
 
     except Exception as error:
         print(mytime(),f"Error in owping process: {error}")
         return 0
     #calculate awailebility
     A  = (float(sent)-float(loss))/float(sent)
-
+    results.append(A)
     print(mytime(),f'Registering OWAMP result: {results}')
 
-    #r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerowamp/', json={'availebility':f'{A}','delay':f'{mmedi}','jitter':f'{jitter}'})
+    r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerowamp/', json={'availebility':f'{A}','delay':f'{mmedi}','jitter':f'{jitter}'})
 
-    #if not 'registerping: ok' in r.content:
-    #    print(mytime(),"Could not register OWAMP")
+    if not 'registerping: ok' in r.content:
+        print(mytime(),"Could not register OWAMP")
 
         
 @logged
