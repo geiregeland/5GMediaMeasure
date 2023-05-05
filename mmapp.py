@@ -90,7 +90,45 @@ def ping_addr(dest):
         print(mytime(),f"Error in process: {error}")
         return 0
 
+@logged
+def owamp(dest):
+    results={}
+    try:
+        process = subprocess.Popen(shlex.split(f'{OWPING} -c100 -i0.1 -L10 -s0 -t -AO -nm {dest}'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
+        pipe=process.stdout
+
+        for line in pipe:
+            line = line.decode('utf-8')
+            if 'sent' in line:
+                tmp=line.split(',')
+                sent=tmp[0].split(' ')[0]
+                loss=tmp[1].split(' ')[0]
+            if 'delay' in line:
+                tmp=line.split('=')[1]
+                mmin=tmp.split('/')[0]
+                mmedi=tmo.split['/'][1]
+                mmax=tmp.split('/')[2].split(' ms')[0]
+            if 'jitter' in line:
+                tmp=line.split(' = ')[1]
+                jitter=tmp.split(' ms')[0]
+
+
+
+    except Exception as error:
+        print(mytime(),f"Error in owping process: {error}")
+        return 0
+    #calculate awailebility
+    A  = (float(sent)-float(loss))/float(sent)
+
+    print(mytime(),f'Registering OWAMP result: {results}')
+
+    r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerowamp/', json={'availebility':f'{A}','delay':f'{mmedi}','jitter':f'{jitter}'})
+
+    if not 'registerping: ok' in r.content:
+        print(mytime(),"Could not register OWAMP")
+
+        
 @logged
 def iperf3Throughput():
     time.sleep(1)
