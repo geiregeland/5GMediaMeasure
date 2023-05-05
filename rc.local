@@ -1,1 +1,0 @@
-/opt/bin/owampd -c /opt/etc-d /tmp -R /var/run -G nogroup -U nobody
