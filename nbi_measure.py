@@ -75,7 +75,7 @@ app.register_blueprint(rq_dashboard.blueprint,url_prefix='/rq')
 
 @app.route('/registerping/',methods = ['GET','POST'])
 def regping():
-    #try:
+    try:
         arguments = request.json
         val=arguments['RTT']
         if float(val)*1.0 == 0:
@@ -92,12 +92,12 @@ def regping():
 
 
         return f'registerping: ok'
-    #except Exception as error:
+    except Exception as error:
         return errorResponse("Failed call to /registerping",error)
 
 @app.route('/registerowamp/',methods = ['GET','POST'])
 def regowamp():
-    #try:
+    try:
         arguments = request.json
         jitter=arguments['jitter']
         availebility=arguments['availebility']
@@ -129,59 +129,53 @@ def regowamp():
 
 
         return f'registerowamp: ok'
-    #except Exception as error:
+    except Exception as error:
         return errorResponse("Failed call to /registerowamp",error)
 
 
 #Reliability	The likelihood of a service failing, i.e. 	Mean time between failure (MTBF). 
 @app.route('/getmtbf',methods=['GET','POST'])
-def getmtbf():
-        res=[]
-        r=0
-        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        a=df['Availebility'].tail(10)
-        for i in a:
-             if i>=1.0:
-                  r+=1
+def getmtbf():    
+    df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+    a=df['Availebility'].tail(10)
+    u=0
+    d=0
+    for i in a:
+        if i>=1.0:
+            u+=600
         else:
-             if r>0:
-                res.append(r)
-                r=0
-        if len(res):
-             s=0
-             for i in res:
-                  s+=i
-             return s/len(res)
-        else:
-             return 6000
+            d+=1
+    if d:
+        mtbf=u/d
+    else:
+        return 1.0
+
 
 
 @app.route('/getdelay',methods=['GET','POST'])
 def getdelay():
-        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        return df['Delay'].tail(10).mean()
+    df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+    return df['Delay'].tail(10).mean()
 
 @app.route('/getjitter',methods=['GET','POST'])
 def getjitter():
-        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        return df['Jitter'].tail(10).mean()
+    df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+    return df['Jitter'].tail(10).mean()
 
 @app.route('/getavailebility',methods=['GET','POST'])
 def getavailebility():
-        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        
-        return df['Availebility'].tail(10).mean()
+    df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')   
+    return df['Availebility'].tail(10).mean()
 
 @app.route('/getdl',methods=['GET','POST'])
 def getdl():
-        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        
-        return df['Downlink'].tail(10).mean()
+    df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')  
+    return df['Downlink'].tail(10).mean()
 
 @app.route('/getul',methods=['GET','POST'])
 def getul():
-        df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
-        return df['Uplink'].tail(10).mean()
+    df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+    return df['Uplink'].tail(10).mean()
 
 
 
