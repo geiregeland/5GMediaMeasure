@@ -150,8 +150,6 @@ def getmtbf():
     else:
         return 1.0
 
-
-
 @app.route('/getdelay',methods=['GET','POST'])
 def getdelay():
     df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
