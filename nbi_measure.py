@@ -100,25 +100,15 @@ def regping():
 def startexp():
     try:
         arguments = request.json
-        starttest=arguments['start']
-        endtest=arguments['stop']
+        explength=arguments['delta']
         id=arguments['id']
         uid = uuid.uuid4().hex
 
-        process = subprocess.Popen(shlex.split(f'cat /sys/class/net/ens260f0/statistics/tx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-        pipe=process.stdout
-        for line in pipe:
-            tx=int(line)
 
-        process = subprocess.Popen(shlex.split(f'cat /sys/class/net/ens260f0/statistics/rx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-        pipe=process.stdout
-        for line in pipe:
-            rx=int(line)
-
-        job = Job.create(startexp,args=[uid,tx,rx],id=uid,connection=connRedis())
+        job = Job.create(startexp,args=[uid,delta],id=uid,connection=connRedis())
         delta = timedelta(minutes = 5)
         at=datetime.now()+delta
-        r=q.schedule_job(job,at,rxtx)
+        r=q.enqueue_job(job)
         return f'startexperiment: ok'
     except Exception as error:
         return errorResponse("Failed call to /startexperiment",error)
