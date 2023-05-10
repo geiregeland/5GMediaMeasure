@@ -156,7 +156,24 @@ def iperf3Throughput():
     return {'Date':[datetime.now().strftime("%Y-%d-%m %H:%M:%S")],'Uplink':[uplink],'Downlink':[downlink]}
 
 
-def StartExp(uid,rx,tx):
+def StartExp(uid,delta):
+  m = delta
+  rx_data=[]
+  tx_data=[]
+  while m>0:
+      process = subprocess.Popen(shlex.split(f'cat /sys/class/net/ens260f0/statistics/tx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+      pipe=process.stdout
+      for line in pipe:
+        tx=int(line)
+        tx_data.append(tx)
+      process = subprocess.Popen(shlex.split(f'cat /sys/class/net/ens260f0/statistics/rx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+      pipe=process.stdout
+      for line in pipe:
+        rx=int(line)
+        rx_data.append(rx)
+      m-=3
+      time.sleep(3)
+        
     return 0
 def rxtx(uid):
     return 0
