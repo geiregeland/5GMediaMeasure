@@ -9,13 +9,14 @@ import rq_dashboard
 import uuid
 #from mmapp import mytime
 import pandas as pd
-from datetime import datetime
+from datetime import datetime,timedelta
 from flask import jsonify
 import redis
 from rq import Worker, Queue, Connection
 import iperf3 as ip3
 from pathlib import Path
-from mmapp import Startsample
+import shlex
+from mmapp import Startsample,StartExp,rxtx
 
 Logfile = "/home/tnor/5GMediahub/Measurements/Service/Logs"
 ServerPort = os.getenv('IPERF_PORT')
@@ -94,6 +95,33 @@ def regping():
         return f'registerping: ok'
     except Exception as error:
         return errorResponse("Failed call to /registerping",error)
+
+@app.route('/startexperiment/',methods = ['GET','POST'])
+def startexp():
+    try:
+        arguments = request.json
+        starttest=arguments['start']
+        endtest=arguments['stop']
+        id=arguments['id']
+        uid = uuid.uuid4().hex
+
+        process = subprocess.Popen(shlex.split(f'cat /sys/class/net/ens260f0/statistics/tx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        pipe=process.stdout
+        for line in pipe:
+            tx=int(line)
+
+        process = subprocess.Popen(shlex.split(f'cat /sys/class/net/ens260f0/statistics/rx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        pipe=process.stdout
+        for line in pipe:
+            rx=int(line)
+
+        job = Job.create(startexp,args=[uid,tx,rx],id=uid,connection=connRedis())
+        delta = timedelta(minutes = 5)
+        at=datetime.now()+delta
+        r=q.schedule_job(job,at,rxtx)
+        return f'startexperiment: ok'
+    except Exception as error:
+        return errorResponse("Failed call to /startexperiment",error)
 
 @app.route('/registerowamp/',methods = ['GET','POST'])
 def regowamp():

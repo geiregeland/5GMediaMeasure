@@ -156,6 +156,10 @@ def iperf3Throughput():
     return {'Date':[datetime.now().strftime("%Y-%d-%m %H:%M:%S")],'Uplink':[uplink],'Downlink':[downlink]}
 
 
+def StartExp(uid,rx,tx):
+    return 0
+def rxtx(uid):
+    return 0
 
 
 def Startsample(uid):
