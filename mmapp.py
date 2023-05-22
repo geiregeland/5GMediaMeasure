@@ -16,6 +16,7 @@ ServerPort = os.getenv('IPERF_PORT')
 ServerAddress = os.getenv('IPERF_ADDRESS')
 MeasurePort = os.getenv('MPORT')
 owping = os.getenv('OWPING')
+nic = os.getenv("NIC")
 
 
 def mytime():
@@ -157,23 +158,31 @@ def iperf3Throughput():
 
 
 def StartExp(uid,delta):
-  m = delta
-  rx_data=[]
-  tx_data=[]
-  while m>0:
-      process = subprocess.Popen(shlex.split(f'cat /sys/class/net/ens260f0/statistics/tx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    interval=3.0
+    m = delta
+    rx_data=[]
+    tx_data=[]
+    while m>0:
+      process = subprocess.Popen(shlex.split(f'cat /sys/class/net/{nic}/statistics/tx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
       pipe=process.stdout
       for line in pipe:
         tx=int(line)
-        tx_data.append(tx)
-      process = subprocess.Popen(shlex.split(f'cat /sys/class/net/ens260f0/statistics/rx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        if len(tx_data):
+            d=tx-tx_data[-1][1]/interval
+            tx_data.append((tx,d))
+        else:
+            tx_data.append((tx,0))
+      process = subprocess.Popen(shlex.split(f'cat /sys/class/net/{nic}/statistics/rx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
       pipe=process.stdout
       for line in pipe:
         rx=int(line)
-        rx_data.append(rx)
-      m-=3
-      time.sleep(3)
-        
+        if len(rx_data):
+            d=rx-rx_data[-1][1]/interval
+            rx_data.append((rx,d))
+        else:
+            rx_data.append((rx,0))
+      m-=interval
+      time.sleep(interval)
     return 0
 def rxtx(uid):
     return 0
