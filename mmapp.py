@@ -158,38 +158,50 @@ def iperf3Throughput():
 
 
 def StartExp(uid,delta):
-    interval=3.0
+    interval = 3.0
     m = delta
-    rx_data=[]
-    tx_data=[]
+    rx_data = []
+    tx_data = []
+    results = {}
+
     while m>0:
       process = subprocess.Popen(shlex.split(f'cat /sys/class/net/{nic}/statistics/tx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-      pipe=process.stdout
+      pipe = process.stdout
       for line in pipe:
-        tx=int(line)
+        tx = int(line)
         if len(tx_data):
-            d=tx-tx_data[-1][1]/interval
+            d = tx-tx_data[-1][1]/interval
             tx_data.append((tx,d))
         else:
             tx_data.append((tx,0))
+
       process = subprocess.Popen(shlex.split(f'cat /sys/class/net/{nic}/statistics/rx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-      pipe=process.stdout
+      pipe = process.stdout
       for line in pipe:
-        rx=int(line)
+        rx = int(line)
         if len(rx_data):
-            d=rx-rx_data[-1][1]/interval
+            d = rx-rx_data[-1][1]/interval
             rx_data.append((rx,d))
         else:
             rx_data.append((rx,0))
-      m-=interval
+
+      m -= interval
       time.sleep(interval)
 
-    average_rx=(rx_data[-1][0] - rx_data[0][0])/delta
-    average_tx=(tx_data[-1][0] - tx_data[0][0])/delta
-    peak_rx = max([i[1] for i in rx_data])
-    peak_tx = max([i[1] for i in tx_data])
+    # rx_data=[(s1,0),(s2,s2-s1/interval),....]
+    # tx_data=[(s1,0),(s2,s2-s1/interval),....]
 
-    return 0
+    average_rx = (rx_data[-1][0] - rx_data[0][0])/delta
+    average_tx = (tx_data[-1][0] - tx_data[0][0])/delta
+
+    results['peak_rx'] = max([i[1] for i in rx_data[1:]])
+    results['peak_tx'] = max([i[1] for i in tx_data[1:]])
+    results['rx_var'] = sum((i[1] - average_rx) ** 2 for i in rx_data[1:]) / len(rx_data[1:])
+    results['tx_var'] = sum((i[1] - average_tx) ** 2 for i in tx_data[1:]) / len(tx_data[1:])
+    results['average_rx'] = average_rx
+    results['average_tx'] = average_tx
+ 
+    return {'exp_throughput':results}
 
 def rxtx(uid):
     return 0
@@ -236,6 +248,9 @@ def Startsample(uid):
     df = pd.concat([df,pd.DataFrame(sample,columns=['Date','Uplink','Downlink','RTT'])])
     df.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
     print(mytime(),df)
+
+    #df.loc[df['sample_id'] == 'uuid','jitter']=jitter
+    #df.loc[df['sample_id'] == 'uuid','RTT']=RTT
 
 def getjitter():
         df = pd.read_csv(f'Logs/iperf2.csv',sep=';')
