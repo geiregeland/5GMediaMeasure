@@ -183,7 +183,14 @@ def StartExp(uid,delta):
             rx_data.append((rx,0))
       m-=interval
       time.sleep(interval)
+
+    average_rx=(rx_data[-1][0] - rx_data[0][0])/delta
+    average_tx=(tx_data[-1][0] - tx_data[0][0])/delta
+    peak_rx = max([i[1] for i in rx_data])
+    peak_tx = max([i[1] for i in tx_data])
+
     return 0
+
 def rxtx(uid):
     return 0
 
