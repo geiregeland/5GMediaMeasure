@@ -11,13 +11,14 @@ from pathlib import Path
 from datetime import datetime
 import requests
 
+
 Logfile = "/home/tnor/5GMediahub/Measurements/Service/Logs"
 ServerPort = os.getenv('IPERF_PORT')
 ServerAddress = os.getenv('IPERF_ADDRESS')
 MeasurePort = os.getenv('MPORT')
 owping = os.getenv('OWPING')
 nic = os.getenv("NIC")
-
+duration = 5 #5s if iperf
 
 def mytime():
   now = datetime.now()
@@ -36,23 +37,27 @@ def logged(func):
 def iperfclient():
     print(mytime(),"Starting iperf3 server")
     r= requests.get(f'http://{ServerAddress}:{MeasurePort}/startiperf3')
+    
+    uid = r.content.decode('utf-8').split(':')[1]
+
     if not 'starteiperf3: ok' in r.content:
         print(mytime(),"Could not start iperf3 server")
   
-    time.sleep(2)
+    time.sleep(1)
 
     client = ip3.Client()
     client.server_hostname = ServerAddress
     client.zerocopy = True
     client.verbose = False
     client.reverse = False
+    client.duration = duration
     print(f'Serverport: {ServerPort}')
     client.port = ServerPort
     #client.num_streams = 10
     print(mytime(),"Starting iperf3 client run 1")
     client.run()
     
-    time.sleep(5)
+    time.sleep(1)
     client.reverse=True
 
     print(mytime(),"Starting iperf3 client run 2")
@@ -66,10 +71,22 @@ def iperfclient():
 
     print(mytime(),f'Registering RTT result: {rtt}')
 
-    r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerping/', json={'RTT':f'{rtt}'})
+    r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerping/{uid}', json={'RTT':f'{rtt}'})
 
     if not 'registerping: ok' in r.content:
         print(mytime(),"Could not register RTT")
+
+    results = owamp(ServerAddress)
+
+    print(mytime(),f'Registering OWAMP result: {results}')
+
+    r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerowamp/{uid}', json={'availebility':f'{results["A"]}','delay':f'{results["mmedi"]}','jitter':f'{results["jitter"]}'})
+    #register 
+    #print(str(r.content.decode('utf-8')))
+    #print('registerowamp: ok')
+    if 'registerowamp: ok' != str(r.content.decode('utf-8')):
+        print(mytime(),"Could not register OWAMP")
+
 
 
 @logged
@@ -94,7 +111,7 @@ def ping_addr(dest):
 
 @logged
 def owamp(dest):
-    results=[]
+    results={}
     try:
         process = subprocess.Popen(shlex.split(f'{owping} -c100 -i0.1 -L10 -s0 -t -AO -nm {dest}'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
@@ -105,37 +122,32 @@ def owamp(dest):
                 tmp=line.split(',')
                 sent=tmp[0].split(' ')[0].strip()
                 loss=tmp[1].split(' ')[1].strip()
-                results.append(sent)
-                results.append(loss)
+                results['sent'] = sent
+                results['loss'] = loss
             if 'delay' in line:
                 tmp=line.split('max =')[1]
                 mmin=tmp.split('/')[0].strip()
                 mmedi=tmp.split('/')[1].strip()
                 mmax=tmp.split('/')[2].split(' ms')[0].strip()
-                results.append(mmedi)
+                results['mmedi'] = mmedi
             if 'jitter' in line:
                 tmp=line.split(' = ')[1]
                 jitter=tmp.split(' ms')[0].strip()
-                results.append(jitter)
+                results['jitter'] = jitter
 
     except Exception as error:
         print(mytime(),f"Error in owping process: {error}")
         return 0
     #calculate awailebility
     A  = (float(sent)-float(loss))/float(sent)
-    results.append(A)
-    print(mytime(),f'Registering OWAMP result: {results}')
+    results['A'] = A
 
-    r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerowamp/', json={'availebility':f'{A}','delay':f'{mmedi}','jitter':f'{jitter}'})
-    #register 
-    #print(str(r.content.decode('utf-8')))
-    #print('registerowamp: ok')
-    if 'registerowamp: ok' != str(r.content.decode('utf-8')):
-        print(mytime(),"Could not register OWAMP")
+    return results
+
 
         
 @logged
-def iperf3Throughput():
+def iperf3Throughput(uid):
     time.sleep(1)
     s = ip3.Server()
     s.port = ServerPort
@@ -154,11 +166,14 @@ def iperf3Throughput():
     downlink=l['end']['streams'][0]['sender']['bits_per_second']
 
     print(mytime(),f"downlink:{downlink}")
-    return {'Date':[datetime.now().strftime("%Y-%d-%m %H:%M:%S")],'Uplink':[uplink],'Downlink':[downlink]}
+    return {'Date':[datetime.now().strftime("%Y-%d-%m %H:%M:%S")],'Uplink':[uplink],'Downlink':[downlink],'Id':uid}
 
 
-def StartExp(uid,delta):
-    interval = 3.0
+
+@logged
+def StartExp(uid,delta=5):
+    time.sleep(1)
+    interval = delta/25
     m = delta
     rx_data = []
     tx_data = []
@@ -200,14 +215,27 @@ def StartExp(uid,delta):
     results['tx_var'] = sum((i[1] - average_tx) ** 2 for i in tx_data[1:]) / len(tx_data[1:])
     results['average_rx'] = average_rx
     results['average_tx'] = average_tx
+
+    dfd = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
+
+    if len(dfd.loc[dfd['Id']==f'{uid}']):
+        dfd.loc[dfd['Id']==f'{uid}','peak_rx']=results['peak_rx']
+        dfd.loc[dfd['Id']==f'{uid}','peak_tx']=results['peak_tx']
+        dfd.loc[dfd['Id']==f'{uid}','rx_var']=results['rx_var']
+        dfd.loc[dfd['Id']==f'{uid}','tx_var']=results['tx_var']
+        dfd.loc[dfd['Id']==f'{uid}','average_rx']=results['average_rx']
+        dfd.loc[dfd['Id']==f'{uid}','average_tx']=results['average_tx']
+
+    else:
+        print(mytime(),f'Failed to write data to pandas for uid:{uid}')
+        dfd.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
  
-    return {'exp_throughput':results}
+    return results
 
 def rxtx(uid):
     return 0
 
-
-def Startsample(uid):
+def getLogfile():
     try:
         os.makedirs(Logfile,exist_ok=True)
     except Exception as error:
@@ -215,8 +243,15 @@ def Startsample(uid):
 
     if not os.path.exists(f'{Logfile}/iperf.csv'):
         df = pd.DataFrame({'Date': pd.Series(dtype='str'),
+                           'Id':pd.Series(dtype=str),
                    'Uplink': pd.Series(dtype='float'),
                    'Downlink': pd.Series(dtype='float'),
+                   'peak_tx': pd.Series(dtype='float'),
+                   'peak_rx': pd.Series(dtype='float'),
+                   'rx_var': pd.Series(dtype='float'),
+                   'tx_var': pd.Series(dtype='float'),
+                   'average_rx': pd.Series(dtype='float'),
+                   'average_tx': pd.Series(dtype='float'),
                    'RTT':pd.Series(dtype='float')})
         df['Date']=pd.to_datetime(df.Date)
         df.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
@@ -224,8 +259,13 @@ def Startsample(uid):
     else:
         df = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
         print(mytime(),f'Reading file {Logfile}/iperf.csv')
-    
-    sample = iperf3Throughput()
+
+
+
+def Startsample(uid):
+    df = getLogfile()
+
+    sample = iperf3Throughput(uid)
     #s = ip3.Server()
     #s.port = ServerPort
     #print("starting iperfserver at:",ServerAddress)
@@ -245,7 +285,7 @@ def Startsample(uid):
     #print(mytime(),f"downlink:{downlink}")
     #sample= {'Date':[datetime.now().strftime("%Y-%d-%m %H:%M:%S")],'Uplink':[uplink],'Downlink':[downlink]}
 
-    df = pd.concat([df,pd.DataFrame(sample,columns=['Date','Uplink','Downlink','RTT'])])
+    df = pd.concat([df,pd.DataFrame(sample,columns=['Date','Uplink','Downlink','RTT','Id'])])
     df.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
     print(mytime(),df)
 
