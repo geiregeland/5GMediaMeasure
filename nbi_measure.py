@@ -74,8 +74,8 @@ app.register_blueprint(rq_dashboard.blueprint,url_prefix='/rq')
 
 
 
-@app.route('/registerping/',methods = ['GET','POST'])
-def regping():
+@app.route('/registerping/<uid>',methods = ['GET','POST'])
+def regping(uid):
     try:
         arguments = request.json
         val=arguments['RTT']
@@ -85,7 +85,9 @@ def regping():
         #print(arguments)
         dfd = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
         #dfd=df.copy()
-        dfd.loc[dfd.index[-1],'RTT']=float(val)
+        if len(dfd.loc[dfd['Id']==f'{uid}']):
+            dfd.loc[dfd['Id']==f'{uid}','RTT'] = float(val)
+            #dfd.loc[dfd.index[-1],'RTT']=float(val)
 
         #df = pd.concat([df,pd.DataFrame(sample,columns=['Date','Uplink','Downlink','RTT'])])
         dfd.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
@@ -113,8 +115,8 @@ def startexp():
     except Exception as error:
         return errorResponse("Failed call to /startexperiment",error)
 
-@app.route('/registerowamp/',methods = ['GET','POST'])
-def regowamp():
+@app.route('/registerowamp/<uid>',methods = ['GET','POST'])
+def regowamp(uid):
     try:
         arguments = request.json
         jitter=arguments['jitter']
@@ -137,9 +139,12 @@ def regowamp():
         #print(arguments)
         dfd = pd.read_csv(f'{Logfile}/iperf.csv',sep=',')
         #dfd=df.copy()
-        dfd.loc[dfd.index[-1],'Delay']=float(delay)
-        dfd.loc[dfd.index[-1],'Availebility']=float(availebility)
-        dfd.loc[dfd.index[-1],'Jitter']=float(jitter)
+        if len(dfd.loc[dfd['Id']==f'{uid}']):
+            dfd.loc[dfd['Id']==f'{uid}','Delay']=float(delay)
+            dfd.loc[dfd['Id']==f'{uid}','Availebility']=float(availebility)
+            dfd.loc[dfd['Id']==f'{uid}','Jitter']=float(jitter)
+        else:
+            print(mytime(),f'Failed to write data to pandas for uid:{uid}')
 
         #df = pd.concat([df,pd.DataFrame(sample,columns=['Date','Uplink','Downlink','RTT'])])
         dfd.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
@@ -205,6 +210,11 @@ def startsiperf3():
        job = Job.create(Startsample,args=[uid],id=uid,connection=connRedis())
        
        r=q.enqueue_job(job)
+
+       job = Job.create(StartExp,args=[uid],id=uid,connection=connRedis())
+       
+       r=q.enqueue_job(job)
+
        return f'starteiperf3: ok,  request_id:{uid}'
    except Exception as error:
        return errorResponse("Failed call to /startiperf3",error)
