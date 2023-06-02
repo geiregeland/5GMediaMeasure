@@ -35,12 +35,12 @@ def logged(func):
 
 @logged
 def iperfclient():
-    print(mytime(),"Starting iperf3 server")
+    print(mytime(),f"Starting iperf3 server - Server:{ServerAddress}:{MeasurePort}")
     r= requests.get(f'http://{ServerAddress}:{MeasurePort}/startiperf3')
     
     uid = r.content.decode('utf-8').split(':')[1]
 
-    if not 'starteiperf3: ok' in r.content:
+    if not 'starteiperf3: ok' in r.content.decode('utf-8'):
         print(mytime(),"Could not start iperf3 server")
   
     time.sleep(1)
@@ -55,14 +55,19 @@ def iperfclient():
     client.port = ServerPort
     #client.num_streams = 10
     print(mytime(),"Starting iperf3 client run 1")
-    client.run()
-    
-    time.sleep(1)
+    results = client.run()
+
+    l=results.json
+    print(l)
+
+    time.sleep(5)
     client.reverse=True
 
     print(mytime(),"Starting iperf3 client run 2")
 
-    client.run()
+    results=client.run()
+    l=results.json
+    print(l)
 
     time.sleep(2)
     print(mytime(),"Starting ping test")
@@ -73,8 +78,10 @@ def iperfclient():
 
     r = requests.get(f'http://{ServerAddress}:{MeasurePort}/registerping/{uid}', json={'RTT':f'{rtt}'})
 
-    if not 'registerping: ok' in r.content:
-        print(mytime(),"Could not register RTT")
+    if not 'registerping: ok' in r.content.decode('utf-8'):
+        print(mytime(),f"Could not register RTT: {r.content}")
+
+    return
 
     results = owamp(ServerAddress)
 
@@ -302,4 +309,5 @@ def getjitter():
 
 if __name__=='__main__':
    #owamp(ServerAddress)
-    getjitter()
+   # getjitter()
+   iperfclient()
