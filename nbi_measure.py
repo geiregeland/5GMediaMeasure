@@ -21,14 +21,14 @@ from mmapp import Startsample,StartExp,rxtx
 Logfile = "/home/tnor/5GMediahub/Measurements/Service/Logs"
 ServerPort = os.getenv('IPERF_PORT')
 if ord(ServerPort[0:1]) == 8220:
-    ServerPort = ServerPort[':-1']
+    ServerPort = ServerPort[1:-1]
 ServerAddress = os.getenv('IPERF_ADDRESS')
 if ord(ServerAddress[0:1]) == 8220:
-    ServerAddress = ServerAddress[':-1']
+    ServerAddress = ServerAddress[1:-1]
 
 MeasurePort = os.getenv('MPORT')
 if ord(MeasurePort[0:1]) == 8220:
-    MeasurePort = MeasurePort[':-1']
+    MeasurePort = MeasurePort[1:-1]
 
 #q = Queue(connection = myworker.connRedis(), default_timeout = 7200)
 def mytime():
@@ -54,11 +54,11 @@ def connRedis():
         #redis_url = os.getenv('REDIS_URL', 'redis://localhost:'+redisPort)
         host = os.getenv('REDIS_HOST')
         if ord(host[0:1]) == 8220:
-            host = host[':-1']
+            host = host[1:-1']
 
         port = os.getenv('REDIS_PORT')
         if ord(port[0:1]) == 8220:
-            port = port[':-1']
+            port = port[1:-1']
 
         redis_url = f'redis://{host}:{port}'
         print(redis_url)
