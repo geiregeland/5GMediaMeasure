@@ -4,6 +4,7 @@ from flask import jsonify
 import redis
 from rq import Worker, Queue, Connection
 from nbi_measure import clean_osgetenv
+from config import G5Conf
 
 
 
@@ -23,8 +24,10 @@ def connRedis():
     try:
         #redisPort=get_redisport()
         #redis_url = os.getenv('REDIS_URL', 'redis://localhost:'+redisPort)
-        host = clean_osgetenv(os.getenv('REDIS_HOST'))
-        port = clean_osgetenv(os.getenv('REDIS_PORT'))
+        host = G5Conf['redishost']
+        port = G5Conf['redisport']
+        #host = clean_osgetenv(os.getenv('REDIS_HOST'))
+        #port = clean_osgetenv(os.getenv('REDIS_PORT'))
         redis_url = f'redis://{host}:{port}'
         print(redis_url)
         return connect_redis(redis_url)

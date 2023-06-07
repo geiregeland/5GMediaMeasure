@@ -10,14 +10,16 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime
 import requests
+from config import G5Conf
 
 
-Logfile = "/home/tnor/5GMediahub/Measurements/Service/Logs"
-ServerPort = os.getenv('IPERF_PORT')
-ServerAddress = os.getenv('IPERF_ADDRESS')
-MeasurePort = os.getenv('MPORT')
-owping = os.getenv('OWPING')
-nic = os.getenv("NIC")
+
+Logfile = G5Conf['Logpath']
+ServerPort = G5Conf['iperfport']
+ServerAddress = G5Conf['iperfhost']
+MeasurePort = G5Conf['mport']
+owping = G5Conf['owping']
+nic = G5Conf['nic']
 duration = 5 #5s if iperf
 
 def mytime():
