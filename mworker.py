@@ -23,8 +23,18 @@ def connRedis():
         #redisPort=get_redisport()
         #redis_url = os.getenv('REDIS_URL', 'redis://localhost:'+redisPort)
         host = os.getenv('REDIS_HOST')
+        try:
+            if ord(host[0:1]) == 8220:
+                host = host[1:-1]
+        except:
+            pass
         port = os.getenv('REDIS_PORT')
-
+        try:
+            if ord(port[0:1]) == 8220:
+                port = port[1:-1]
+        except:
+            pass
+        
         redis_url = f'redis://{host}:{port}'
         print(redis_url)
         return connect_redis(redis_url)
