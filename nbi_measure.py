@@ -19,26 +19,20 @@ import shlex
 from mmapp import Startsample,StartExp,rxtx
 
 Logfile = "/home/tnor/5GMediahub/Measurements/Service/Logs"
-ServerPort = os.getenv('IPERF_PORT')
-try:
-    if ord(ServerPort[0:1]) == 8220:
-        ServerPort = ServerPort[1:-1]
-except:
-    pass
 
-ServerAddress = os.getenv('IPERF_ADDRESS')
-try:
-    if ord(ServerAddress[0:1]) == 8220:
-        ServerAddress = ServerAddress[1:-1]
-except :
-    pass
+def clean_osgetenv(s):
+    try:
+        if ord(s[0:1]) == 8220:
+            return(s[1:-1])
+    except:
+        pass
+    return s
 
-MeasurePort = os.getenv('MPORT')
-try:
-    if ord(MeasurePort[0:1]) == 8220:
-        MeasurePort = MeasurePort[1:-1]
-except:
-    pass
+    
+ServerPort = clean_osgetenv(os.getenv('IPERF_PORT'))
+ServerAddress = clean_osgetenv(os.getenv('IPERF_ADDRESS'))
+MeasurePort = clean_osgetenv(os.getenv('MPORT'))
+
 #q = Queue(connection = myworker.connRedis(), default_timeout = 7200)
 def mytime():
   now = datetime.now()
@@ -61,18 +55,8 @@ def connRedis():
     try:
         #redisPort=get_redisport()
         #redis_url = os.getenv('REDIS_URL', 'redis://localhost:'+redisPort)
-        host = os.getenv('REDIS_HOST')
-        try:
-            if ord(host[0:1]) == 8220:
-                host = host[1:-1]
-        except:
-            pass
-        port = os.getenv('REDIS_PORT')
-        try:
-            if ord(port[0:1]) == 8220:
-                port = port[1:-1]
-        except:
-            pass
+        host = clean_osgetenv(os.getenv('REDIS_HOST'))
+        port = clean_osgetenv(os.getenv('REDIS_PORT'))
         redis_url = f'redis://{host}:{port}'
         print(redis_url)
         return connect_redis(redis_url)
@@ -87,18 +71,9 @@ q = Queue('low',connection = connRedis(), default_timeout = 7200)
 
 app = Flask(__name__)
 # Configuration Variables
-redishost = os.getenv('REDIS_HOST')
-try:
-    if ord(redishost[0:1]) == 8220:
-        redishost = redishost[1:-1]
-except:
-    pass
-redisport = os.getenv('REDIS_PORT')
-try:
-    if ord(redisport[0:1]) == 8220:
-        redisport = redisport[1:-1]
-except:
-    pass
+redishost = clean_osgetenv(os.getenv('REDIS_HOST'))
+redisport = clean_osgetenv(os.getenv('REDIS_PORT'))
+
 app.config["DEBUG"] = True
 app.config["RQ_DASHBOARD_REDIS_PORT"] = redisport
 app.config["RQ_DASHBOARD_REDIS_URL"] = f"redis://{redishost}:{redisport}"
