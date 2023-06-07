@@ -87,9 +87,21 @@ q = Queue('low',connection = connRedis(), default_timeout = 7200)
 
 app = Flask(__name__)
 # Configuration Variables
+redishost = os.getenv('REDIS_HOST')
+try:
+    if ord(redishost[0:1]) == 8220:
+        redishost = redishost[1:-1]
+except:
+    pass
+redisport = os.getenv('REDIS_PORT')
+try:
+    if ord(redisport[0:1]) == 8220:
+        redisport = redisport[1:-1]
+except:
+    pass
 app.config["DEBUG"] = True
-app.config["RQ_DASHBOARD_REDIS_PORT"] = os.getenv('REDIS_PORT')
-app.config["RQ_DASHBOARD_REDIS_URL"] = f"redis://{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT')}"
+app.config["RQ_DASHBOARD_REDIS_PORT"] = redisport
+app.config["RQ_DASHBOARD_REDIS_URL"] = f"redis://{redishost}:{redisport}"
 
 #pwd_get= subprocess.run(['pwd'],check=True,text=False,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #app.config['UPLOAD_FOLDER'] = pwd_get.stdout.decode('utf-8')[:-1]+"/uploades"
