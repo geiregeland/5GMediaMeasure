@@ -192,9 +192,9 @@ def StartExp(uid,delta=5):
       process = subprocess.Popen(shlex.split(f'cat /sys/class/net/{nic}/statistics/tx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
       pipe = process.stdout
       for line in pipe:
-        tx = int(line)
+        tx = 8*int(line)
         if len(tx_data):
-            d = tx-tx_data[-1][1]/interval
+            d = (tx-tx_data[-1][0])/interval
             tx_data.append((tx,d))
         else:
             tx_data.append((tx,0))
@@ -202,9 +202,9 @@ def StartExp(uid,delta=5):
       process = subprocess.Popen(shlex.split(f'cat /sys/class/net/{nic}/statistics/rx_bytes'),stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
       pipe = process.stdout
       for line in pipe:
-        rx = int(line)
+        rx = 8*int(line)
         if len(rx_data):
-            d = rx-rx_data[-1][1]/interval
+            d = (rx-rx_data[-1][0])/interval
             rx_data.append((rx,d))
         else:
             rx_data.append((rx,0))
@@ -236,8 +236,19 @@ def StartExp(uid,delta=5):
         dfd.loc[dfd['Id']==f'{uid}','average_tx']=results['average_tx']
 
     else:
-        print(mytime(),f'Failed to write data to pandas for uid:{uid}')
-        dfd.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
+        dfd.loc[dfd.index]['Id']==f'{uid}'
+        dfd.loc[dfd.index]['Date']==mytime()
+
+        dfd.loc[dfd.index]['peak_rx']=results['peak_rx']
+        dfd.loc[dfd.index]['peak_rx']=results['peak_rx']
+        dfd.loc[dfd.index]['peak_tx']=results['peak_tx']
+        dfd.loc[dfd.index]['rx_var']=results['rx_var']
+        dfd.loc[dfd.index]['tx_var']=results['tx_var']
+        dfd.loc[dfd.index]['average_rx']=results['average_rx']
+        dfd.loc[dfd.index]['average_tx']=results['average_tx']
+
+        #print(mytime(),f'Failed to write data to pandas for uid:{uid}')
+    dfd.to_csv(f'{Logfile}/iperf.csv', sep=',', encoding='utf-8',index=False)
  
     return results
 

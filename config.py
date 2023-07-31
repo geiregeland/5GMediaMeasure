@@ -21,6 +21,12 @@ elif os_platform == 'INTEL1':
     LocalConf = {'Logpath':'/home/tnor/5GMediahub/Measurements/Service/Logs','logfile1':'iperf.cvs','logfile2':'iperf2.cvs','nic':'ensf260c'}
     owampConf = {'owping':'/opt/bin/owping','owconf':'-c100 -i0.1 -L10 -s0 -t -AO -nm','owampdest':f'{IperfConf["iperfhost"]}'}
 
+elif os_platform == 'HP4':
+    RedisConf = {'redishost':'10.5.1.4', 'redisport':30379}
+    IperfConf = {'iperfhost':'10.5.1.4','iperfport':30955}
+
+    LocalConf = {'Logpath':'/home/tnor/5GMediahub/Measurements/Service/Logs','logfile1':'iperf.cvs','logfile2':'iperf2.cvs','nic':'ens3f0'}
+    owampConf = {'owping':'/opt/bin/owping','owconf':'-c100 -i0.1 -L10 -s0 -t -AO -nm','owampdest':f'{IperfConf["iperfhost"]}'}
 
 
 pingConf = {'clientcmd':'ping -c 12 -i 0.3','mport':9055}
